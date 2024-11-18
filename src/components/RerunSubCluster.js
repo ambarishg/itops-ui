@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Select, Text, Spinner, Alert } from '@chakra-ui/react';
+import { Box, Button, Select, Text, Spinner, Input ,Alert } from '@chakra-ui/react';
 import axios from 'axios';
 
 const RerunSubCluster = () => {
@@ -12,6 +12,14 @@ const RerunSubCluster = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loadingRuns, setLoadingRuns] = useState(true);
+
+    const [selectedCluster, setSelectedCluster] = useState(null);
+  
+    const [clusterNames, setClusterNames] = useState([]);
+    const [loadingClusters, setLoadingClusters] = useState(false);
+    const [runNameSubCluster,setRunNameSubCluster] = useState([]);
+
+ 
 
     // Fetch categories on component mount
     useEffect(() => {
@@ -59,6 +67,30 @@ const RerunSubCluster = () => {
         fetchRunNames();
     }, [selectedCategory]);
 
+    useEffect(() => {
+        if (selectedRun && selectedCategory) {
+          const fetchClusterNames = async () => {
+            try {
+              setLoadingClusters(true);
+              const response = await axios.post('http://127.0.0.1:8000/get-parent-cluster-names/', {
+                run_name: selectedRun,
+                category_name:selectedCategory
+              });
+              console.log(response.data)
+              setClusterNames(response.data.map(cluster => ({ value: cluster, label: cluster })));
+            } catch (error) {
+              console.error('Error fetching cluster names:', error);
+              setErrorMessage('Failed to fetch cluster names.');
+            } finally {
+              setLoadingClusters(false);
+            }
+          };
+    
+          fetchClusterNames();
+        }
+      }, [selectedRun,selectedCategory]);
+    
+
     // Handle rerun action
     const handleRerun = async () => {
         if (!selectedRun || !selectedCategory || !numClusters) {
@@ -70,9 +102,11 @@ const RerunSubCluster = () => {
         try {
             // Replace with your actual rerun logic
             await axios.post('http://127.0.0.1:8000/rerun-sub-cluster/', {
-                category: selectedCategory,
-                run: selectedRun,
-                clusters: numClusters,
+                run_name: runNameSubCluster,
+                parent_run_name: selectedRun,
+                parent_cluster_name: selectedCluster,
+                category_name: selectedCategory,
+                num_clusters: numClusters
             });
             setSuccessMessage('Sub Cluster rerun successfully!');
         } catch (error) {
@@ -107,7 +141,7 @@ const RerunSubCluster = () => {
                 <Spinner />
             ) : (
                 <Select
-                    placeholder="Select a Run"
+                    placeholder="Select the Parent Run"
                     value={selectedRun}
                     onChange={(e) => setSelectedRun(e.target.value)}
                     mb={4}
@@ -119,6 +153,30 @@ const RerunSubCluster = () => {
                     ))}
                 </Select>
             )}
+
+            {loadingClusters ? (
+                <Spinner />
+            ) : (
+                <Select
+                    placeholder="Select the Parent Cluster"
+                    value={selectedCluster}
+                    onChange={(e) => setSelectedCluster(e.target.value)}
+                    mb={4}
+                    bg="white"
+                    color="black"
+                >
+                    {clusterNames.map(cluster => (
+                        <option key={cluster.value} value={cluster.value}>{cluster.label}</option>
+                    ))}
+                </Select>
+            )}
+
+            <Input
+                placeholder="Enter Run Name for Sub Cluster"
+                value={runNameSubCluster}
+                onChange={(e) => setRunNameSubCluster(e.target.value)}
+                mb={4}
+            />
 
             <Select
                 placeholder="Number of Clusters"
