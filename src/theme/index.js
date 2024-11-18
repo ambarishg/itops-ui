@@ -1,7 +1,6 @@
 // src/theme.js
 
 import { extendTheme } from '@chakra-ui/react';
-
 import { selectAnatomy } from '@chakra-ui/anatomy';
 import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
 

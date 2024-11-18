@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Input, Select, Text,  Alert } from '@chakra-ui/react';
 import axios from 'axios';
 
-const RerunCluster = () => {
+const RunCluster = () => {
     const [categories, setCategories] = useState([]);
     const [runName, setRunName] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -26,7 +26,7 @@ const RerunCluster = () => {
     }, []);
 
     // Function to handle rerun cluster
-    const handleRerunCluster = async () => {
+    const handleRunCluster = async () => {
         if (!runName || !selectedCategory) {
             setErrorMessage('Please enter a run name and select a category.');
             return;
@@ -37,15 +37,15 @@ const RerunCluster = () => {
         setSuccessMessage('');
 
         try {
-            await axios.post('http://127.0.0.1:8000/rerun-cluster', {
+            await axios.post('http://127.0.0.1:8000/run-clusters-from-category', {
                 run_name: runName,
                 category_name: selectedCategory,
                 num_clusters: numClusters,
             });
-            setSuccessMessage('Cluster rerun initiated successfully.');
+            setSuccessMessage('Cluster run completed successfully.');
         } catch (error) {
             console.error('Error rerunning cluster:', error);
-            setErrorMessage('Failed to initiate cluster rerun.');
+            setErrorMessage('Failed  cluster run.');
         } finally {
             setLoading(false);
         }
@@ -53,7 +53,7 @@ const RerunCluster = () => {
 
     return (
         <Box p={5}>
-            <Text fontSize="2xl" mb={4}>Rerun Cluster</Text>
+            <Text fontSize="2xl" mb={4}>Run Cluster</Text>
 
             {errorMessage && <Alert 
             color = "black" status="error">{errorMessage}</Alert>}
@@ -100,7 +100,7 @@ const RerunCluster = () => {
 
             <Button
                 colorScheme="teal"
-                onClick={handleRerunCluster}
+                onClick={handleRunCluster}
                 isLoading={loading}
             >
                 Rerun Cluster
@@ -109,4 +109,4 @@ const RerunCluster = () => {
     );
 };
 
-export default RerunCluster;
+export default RunCluster;

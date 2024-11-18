@@ -9,6 +9,9 @@ const Subheader = () => {
                 <Link as={NavLink} to="/" exact style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Home
                 </Link>
+                <Link as={NavLink} to="/run-cluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
+                    Run Cluster
+                </Link>
                 <Link as={NavLink} to="/rerun-cluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Rerun Cluster
                 </Link>
