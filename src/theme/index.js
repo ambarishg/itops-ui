@@ -2,6 +2,34 @@
 
 import { extendTheme } from '@chakra-ui/react';
 
+import { selectAnatomy } from '@chakra-ui/anatomy';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+
+const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(selectAnatomy.keys);
+
+// Define base styles for the Select component
+const baseStyle = definePartsStyle({
+  field: {
+    backgroundColor: 'white', // Default background color
+    color: 'black', // Default text color
+    '&:focus': {
+      backgroundColor: 'white', // Background on focus
+      color: 'black', // Text color on focus
+      boxShadow: 'none', // Optional: Remove focus outline
+    },
+    '& option': {
+      color: 'black', // Text color for options
+    },
+    '&[aria-selected]': {
+      backgroundColor: 'white', // Background when selected
+      color: 'black', // Text color when selected
+    },
+  },
+});
+
+// Create a multi-style config for the Select component
+const selectTheme = defineMultiStyleConfig({ baseStyle });
+
 const theme = extendTheme({
     config: {
         initialColorMode: 'dark',
@@ -34,6 +62,7 @@ const theme = extendTheme({
         body: 'Arial, sans-serif', // Custom font for body text
     },
     components: {
+        Select: selectTheme,
         Button: {
             baseStyle: {
                 borderRadius: 'md', // Rounded corners
@@ -58,5 +87,6 @@ const theme = extendTheme({
         },
     },
 });
+
 
 export default theme;
