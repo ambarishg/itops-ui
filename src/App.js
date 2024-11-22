@@ -10,6 +10,7 @@ import Subheader from './components/SubHeader'; // Import the Header component
 import RerunCluster from './components/RerunCluster';
 import RerunSubCluster from './components/RerunSubCluster';
 import RunCluster from './components/RunCluster';
+import FileUpload from './components/UploadDocs';
 
 function App() {
     return (
@@ -19,6 +20,8 @@ function App() {
                 <Subheader />
                 <Routes>
                     <Route path="/" element={<Home />} />
+                    
+                    <Route path="/file-upload" element={<FileUpload />} />
                     <Route path="/run-cluster" element={<RunCluster />} />
                     <Route path="/rerun-cluster" element={<RerunCluster />} />
                     <Route path="/rerun-subcluster" element={<RerunSubCluster />} />

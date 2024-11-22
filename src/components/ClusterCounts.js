@@ -14,8 +14,11 @@ import {
     CardHeader,
     CardBody,
     IconButton,
+    Modal, ModalOverlay, ModalContent, 
+    ModalHeader, ModalCloseButton, ModalBody, 
+    ModalFooter, FormControl,Input,FormLabel
 } from '@chakra-ui/react';
-import { AddIcon, InfoIcon } from '@chakra-ui/icons'; // Importing Add and Info icons
+import { AddIcon, InfoIcon ,PlusSquareIcon} from '@chakra-ui/icons'; // Importing Add and Info icons
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
 
 const ClusterCounts = () => {
@@ -29,6 +32,9 @@ const ClusterCounts = () => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loadingRuns, setLoadingRuns] = useState(true);
+    const [isOpen, setIsOpen] = useState(false); // State for modal visibility
+    const [subclusterCount, setSubclusterCount] = useState(''); // State for subcluster input
+    const [currentClusterName, setCurrentClusterName] = useState('');
 
         // Fetch categories on component mount
         useEffect(() => {
@@ -144,6 +150,30 @@ const ClusterCounts = () => {
         navigate(`/cluster-info/${clusterName}?run=${runName}`);
     };
 
+    const openSubclusterModal = (clusterName) => {
+        setCurrentClusterName(clusterName);
+        setIsOpen(true);
+    };
+
+     // Function to handle subcluster submission
+     const handleSubclusterSubmit = async () => {
+        setLoading(true);
+        console.log(`Number of subclusters for ${selectedRunName}: ${subclusterCount}`);
+        // Add logic here to handle the subcluster count as needed
+        const runNameSubCluster = currentClusterName + " with " + String(subclusterCount) + " groups"
+        await axios.post('http://127.0.0.1:8000/rerun-sub-cluster/', {
+            run_name: runNameSubCluster,
+            parent_run_name: selectedRunName,
+            parent_cluster_name: currentClusterName,
+            category_name: selectedCategory,
+            num_clusters: subclusterCount
+        });
+        setLoading(false);
+        setSelectedRunName(runNameSubCluster);
+        setIsOpen(false); // Close the modal after submission
+        setSubclusterCount(''); // Reset input field
+    };
+
     return (
         <VStack spacing={4} align="stretch">
             <br/>
@@ -203,7 +233,14 @@ const ClusterCounts = () => {
                     <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunName}</strong></Text>
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
                         {clusterCounts.map((cluster) => (
-                            <Card key={cluster.CLUSTER_NAMES} borderWidth="1px" borderRadius="lg" overflow="hidden">
+                            <Card key={cluster.CLUSTER_NAMES} 
+                            borderWidth="1px" 
+                            borderRadius="lg" 
+                            overflow="hidden"
+                            _hover={{ transform: 'scale(1.04)', 
+                                boxShadow: 'md',
+                                zIndex: 1 }}
+                            transition="transform 0.2s ease">
                                 <CardHeader bg="teal.100" color="black" p={4} display="flex" justifyContent="space-between">
                                     <Text>{cluster.CLUSTER_NAMES}</Text>
                                     {/* First IconButton for adding or drilling down */}
@@ -211,7 +248,7 @@ const ClusterCounts = () => {
                                         aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} 
                                         icon={<AddIcon />}  // Use AddIcon for the plus button
                                         variant="solid"  // Use solid variant for better visibility
-                                        colorScheme="orange" // Change color scheme for contrast
+
                                         size="lg" // Increase size for better visibility
                                         _hover={{ bg: "orange.600", color: "white" }} // Change background and text color on hover
                                         bg="black"
@@ -222,7 +259,7 @@ const ClusterCounts = () => {
                                         aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} 
                                         icon={<InfoIcon />} 
                                         variant="solid"  // Use outline variant for contrast
-                                        colorScheme="orange" // Change color scheme for contrast
+ 
                                         size="lg" // Increase size for better visibility
                                         
                                         _hover={{ bg: "orange.600", color: "white" }}
@@ -232,14 +269,70 @@ const ClusterCounts = () => {
                                         )} 
                                     />
                                 </CardHeader>
-                                <CardBody p={4}>
-                                    <Text fontSize="2xl" fontWeight="bold">{cluster.count}</Text> {/* Render the count property */}
+                                <CardBody p={4} display="flex" justifyContent="space-between">
+
+                                    <Text fontSize="2xl" fontWeight="bold">{cluster.count}</Text>
+                                    
+                                    {/* New IconButton for subclusters placed in grid */}
+                                    <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} 
+                                    icon={<PlusSquareIcon />} 
+                                    variant="solid" colorScheme="blue" 
+                                    _hover={{ bg: "blue.600", color: "white" }} bg="black" 
+                                    onClick={() => openSubclusterModal(cluster.CLUSTER_NAMES)} />
+                                    
                                 </CardBody>
                             </Card>
                         ))}
                     </SimpleGrid>
                 </Box>
             )}
+            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="md" isCentered>
+            <ModalOverlay />
+            <ModalContent bg="gray.800" borderRadius="lg" boxShadow="lg">
+                <ModalHeader color="white" fontWeight="bold">Subcluster Input</ModalHeader>
+                <ModalCloseButton color="white" />
+                <ModalBody>
+                <VStack spacing={4} align="stretch">
+                    <Text fontWeight="bold" fontSize="lg" color="white">
+                    Category: {selectedCategory}
+                    </Text>
+                    <Text fontWeight="bold" fontSize="lg" color="white">
+                    Run: {selectedRunName}
+                    </Text>
+                    <Text fontWeight="bold" fontSize="lg" color="white">
+                    Cluster: {currentClusterName}
+                    </Text>
+                    <FormControl isRequired>
+                    <FormLabel color="gray.300">Number of Subclusters</FormLabel>
+                    <Input
+                        type="number"
+                        value={subclusterCount}
+                        onChange={(e) => setSubclusterCount(e.target.value)}
+                        placeholder="Enter number of subclusters"
+                        variant="filled"
+                        size="lg"
+                        focusBorderColor="blue.500"
+                        bgColor="gray.700"
+                        color="white"
+                    />
+                    </FormControl>
+                </VStack>
+                </ModalBody>
+                <ModalFooter>
+                <Button
+                    colorScheme="blue"
+                    onClick={handleSubclusterSubmit}
+                    isDisabled={!subclusterCount}
+                    isLoading={loading}
+                >
+                    Submit
+                </Button>
+                <Button variant="outline" onClick={() => setIsOpen(false)} colorScheme="gray">
+                    Cancel
+                </Button>
+                </ModalFooter>
+            </ModalContent>
+            </Modal>
         </VStack>
     );
 };

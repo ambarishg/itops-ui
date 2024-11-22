@@ -9,17 +9,14 @@ const Subheader = () => {
                 <Link as={NavLink} to="/" exact style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Home
                 </Link>
+                <Link as={NavLink} to="/file-upload" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
+                    Upload Docs
+                </Link>
                 <Link as={NavLink} to="/run-cluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Run Cluster
                 </Link>
                 <Link as={NavLink} to="/rerun-cluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Rerun Cluster
-                </Link>
-                <Link as={NavLink} to="/rerun-subcluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
-                    Rerun SubCluster
-                </Link>
-                <Link as={NavLink} to="/cluster-stats" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
-                    Cluster Stats
                 </Link>
                 <Link as={NavLink} to="/cluster-info" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Cluster Info
