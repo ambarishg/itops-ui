@@ -20,9 +20,10 @@ import axios from 'axios';
 const ClusterInfo = () => {
   const { clusterName } = useParams();
   const location = useLocation();
-
+  const [categories, setCategories] = useState([]);
   const [runNames, setRunNames] = useState([]);
   const [selectedRun, setSelectedRun] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [clusterNames, setClusterNames] = useState([]);
   const [selectedCluster, setSelectedCluster] = useState(clusterName);
   const [solutions, setSolutions] = useState([]);
@@ -38,13 +39,20 @@ const ClusterInfo = () => {
     const params = new URLSearchParams(location.search);
     const runFromQuery = params.get('run');
     setSelectedRun(runFromQuery ? { value: runFromQuery, label: runFromQuery } : null);
+
+    const categoryFromQuery = params.get('category');
+    setSelectedCategory(categoryFromQuery ? { value: categoryFromQuery, label: categoryFromQuery } : null);
   }, [location.search]);
+
+ 
 
   // Fetch RUN names
   useEffect(() => {
     const fetchRunNames = async () => {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/get-run-names/');
+        const response = await axios.post('http://127.0.0.1:8000/get-run-names-for-category/', {
+          category_name: selectedCategory.value,
+      });
         setRunNames(response.data.map(run => ({ value: run, label: run })));
       } catch (error) {
         console.error('Error fetching run names:', error);
@@ -55,7 +63,7 @@ const ClusterInfo = () => {
     };
 
     fetchRunNames();
-  }, []);
+  }, [selectedCategory]);
 
   // Fetch Cluster names based on selected RUN name
   useEffect(() => {
@@ -65,6 +73,7 @@ const ClusterInfo = () => {
           setLoadingClusters(true);
           const response = await axios.post('http://127.0.0.1:8000/cluster-counts/', {
             run_name: selectedRun.value,
+            category_name: selectedCategory.value,
           });
           setClusterNames(response.data.map(cluster => ({ value: cluster.CLUSTER_NAMES, label: cluster.CLUSTER_NAMES })));
         } catch (error) {
@@ -88,13 +97,25 @@ const ClusterInfo = () => {
           console.log("Selected Cluster is ", selectedCluster);
 
           setLoadingSolutions(true);
+          setLoadingChallenges(true);
           // Reset solutions before fetching new ones
           setSolutions([]); 
           setChallenges([]); // Reset challenges
           setErrorMessage(null);
-          
+          // Fetch challenges similarly
+          const responseChallenges = await axios.post('http://127.0.0.1:8000/get-insights-challenges', { // New API for challenges
+            run_name: selectedRun.value,
+            category_name: selectedCategory.value,
+            cluster_name: selectedCluster,
+            description_column_name: 'Challenge', // Adjust this as needed
+          });
+
+          // Split challenges by newline and store in state
+          setChallenges(responseChallenges.data.challenges.split('\n').filter(item => item.trim() !== ''));
+                    
           const responseSolutions = await axios.post('http://127.0.0.1:8000/get-insights-solutions', {
             run_name: selectedRun.value,
+            category_name: selectedCategory.value,
             cluster_name: selectedCluster,
             description_column_name: 'Solution',
           });
@@ -102,22 +123,13 @@ const ClusterInfo = () => {
           // Split solutions by newline and store in state
           setSolutions(responseSolutions.data.solutions.split('\n')); 
 
-          // Fetch challenges similarly
-          const responseChallenges = await axios.post('http://127.0.0.1:8000/get-insights-challenges', { // New API for challenges
-            run_name: selectedRun.value,
-            cluster_name: selectedCluster,
-            description_column_name: 'Text', // Adjust this as needed
-          });
-
-          // Split challenges by newline and store in state
-          setChallenges(responseChallenges.data.challenges.split('\n'));
-          
         } catch (error) {
           console.error('Error fetching insights solutions or challenges:', error);
           setErrorMessage('Failed to fetch insights solutions or challenges.');
         } finally {
           setLoadingSolutions(false);
           setLoadingChallenges(false); // Ensure loading state is reset
+
         }
       };
 
@@ -128,9 +140,12 @@ const ClusterInfo = () => {
   return (
     <Box p={5}>
       <br/>
-      <Text fontSize="2xl">Cluster Info: {clusterName}</Text>
-
+  
       {errorMessage && <Text color="red.500">{errorMessage}</Text>}
+
+      {selectedCategory ? (
+      <Text>Category Name : {selectedCategory.value}</Text>)
+      :<Text></Text>}
       
       <Select 
         placeholder="Select a Run" 
@@ -176,11 +191,36 @@ const ClusterInfo = () => {
       {/* Tabs for Solutions and Challenges */}
       <Tabs mt={4}>
         <TabList>
-          <Tab>Insights Solutions</Tab>
           <Tab>Insights Challenges</Tab>
+          <Tab>Insights Solutions</Tab>
         </TabList>
 
         <TabPanels>
+          
+          <TabPanel>
+            {loadingChallenges ? (
+              <Spinner size="lg" />
+            ) : (
+              <Box mt={4}>
+                {challenges.length > 0 ? (
+                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                    {challenges.filter(challenge => challenge.trim() !== '')
+                    .map((challenge, index) => (
+                      <Card key={index} borderWidth='1px' borderRadius='lg' overflow='hidden'>
+                        <CardBody>
+                          <Text>{challenge}</Text>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  <Text>No challenges found.</Text>
+                )}
+              </Box>
+            )}
+          </TabPanel>
+
+
           <TabPanel>
             {loadingSolutions ? (
               <Spinner size="lg" />
@@ -188,7 +228,8 @@ const ClusterInfo = () => {
               <Box mt={4}>
                 {solutions.length > 0 ? (
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                    {solutions.map((solution, index) => (
+                    {solutions.filter(solution => solution.trim() !== '')
+                    .map((solution, index) => (
                       <Card key={index} borderWidth='1px' borderRadius='lg' overflow='hidden'>
                         <CardBody>
                           <Text>{solution}</Text>
@@ -203,27 +244,6 @@ const ClusterInfo = () => {
             )}
           </TabPanel>
 
-          <TabPanel>
-            {loadingChallenges ? (
-              <Spinner size="lg" />
-            ) : (
-              <Box mt={4}>
-                {challenges.length > 0 ? (
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                    {challenges.map((challenge, index) => (
-                      <Card key={index} borderWidth='1px' borderRadius='lg' overflow='hidden'>
-                        <CardBody>
-                          <Text>{challenge}</Text>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                ) : (
-                  <Text>No challenges found.</Text>
-                )}
-              </Box>
-            )}
-          </TabPanel>
         </TabPanels>
       </Tabs>
     </Box>

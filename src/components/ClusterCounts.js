@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
+    useToast,
     Box,
     Button,
     Select,
@@ -22,6 +23,7 @@ import { AddIcon, InfoIcon ,PlusSquareIcon} from '@chakra-ui/icons'; // Importin
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
 
 const ClusterCounts = () => {
+    const toast = useToast();
     const [runNames, setRunNames] = useState([]); // State for storing run names
     const [selectedRunName, setSelectedRunName] = useState(''); // State for selected run name
     const [clusterCounts, setClusterCounts] = useState([]); // Initialize as an empty array
@@ -34,6 +36,7 @@ const ClusterCounts = () => {
     const [loadingRuns, setLoadingRuns] = useState(true);
     const [isOpen, setIsOpen] = useState(false); // State for modal visibility
     const [subclusterCount, setSubclusterCount] = useState(''); // State for subcluster input
+    const [subclusterRunName, setSubclusterRunName] = useState('');
     const [currentClusterName, setCurrentClusterName] = useState('');
 
         // Fetch categories on component mount
@@ -70,6 +73,9 @@ const ClusterCounts = () => {
                 {
                     setRunNames(response.data.map(run => ({ value: run, label: run })));
                 }
+                else{
+                    setRunNames([])
+                }
                 
             } catch (error) {
                 console.error('Error fetching run names:', error);
@@ -96,6 +102,7 @@ const ClusterCounts = () => {
         try {
             const response = await axios.post('http://127.0.0.1:8000/cluster-counts/', {
                 run_name: selectedRunName,
+                category_name:selectedCategory
             });
             console.log('Fetched cluster counts:', response.data); // Log fetched cluster counts
 
@@ -144,10 +151,10 @@ const ClusterCounts = () => {
         }
     };
 
-    const handleInfoClick = (clusterName, runName) => {
+    const handleInfoClick = (clusterName, runName,categoryName) => {
         console.log(`Showing info for ${clusterName} in run ${runName}`);
         // Navigate to the Cluster Info page with both cluster and run names
-        navigate(`/cluster-info/${clusterName}?run=${runName}`);
+        navigate(`/cluster-info/${clusterName}?run=${runName}&category=${categoryName}`);
     };
 
     const openSubclusterModal = (clusterName) => {
@@ -160,16 +167,26 @@ const ClusterCounts = () => {
         setLoading(true);
         console.log(`Number of subclusters for ${selectedRunName}: ${subclusterCount}`);
         // Add logic here to handle the subcluster count as needed
-        const runNameSubCluster = currentClusterName + " with " + String(subclusterCount) + " groups"
-        await axios.post('http://127.0.0.1:8000/rerun-sub-cluster/', {
-            run_name: runNameSubCluster,
+        
+        const response = await axios.post('http://127.0.0.1:8000/rerun-sub-cluster/', {
+            run_name: subclusterRunName,
             parent_run_name: selectedRunName,
             parent_cluster_name: currentClusterName,
             category_name: selectedCategory,
             num_clusters: subclusterCount
         });
+
+        console.log("The response is ",)
+        console.log(response.data.message)
+
+        toast({
+            title: 'Sub Cluster Run',
+            description: response.data.message,
+            duration: 5000,
+            isClosable: true,
+          });
         setLoading(false);
-        setSelectedRunName(runNameSubCluster);
+        setSelectedRunName(subclusterRunName);
         setIsOpen(false); // Close the modal after submission
         setSubclusterCount(''); // Reset input field
     };
@@ -265,7 +282,7 @@ const ClusterCounts = () => {
                                         _hover={{ bg: "orange.600", color: "white" }}
                                         bg="black"
                                         onClick={() => handleInfoClick(cluster.CLUSTER_NAMES,
-                                            selectedRunName
+                                            selectedRunName,selectedCategory
                                         )} 
                                     />
                                 </CardHeader>
@@ -303,6 +320,19 @@ const ClusterCounts = () => {
                     Cluster: {currentClusterName}
                     </Text>
                     <FormControl isRequired>
+                    <FormLabel color="gray.300">Sub Cluster Run Name</FormLabel>
+                    <Input
+                        value={subclusterRunName}
+                        onChange={(e) => setSubclusterRunName(e.target.value)}
+                        placeholder="Enter the subcluster Run Name"
+                        variant="filled"
+                        size="lg"
+                        focusBorderColor="blue.500"
+                        bgColor="gray.700"
+                        color="white"
+                    />
+                    </FormControl>
+                    <FormControl isRequired>
                     <FormLabel color="gray.300">Number of Subclusters</FormLabel>
                     <Input
                         type="number"
@@ -316,6 +346,7 @@ const ClusterCounts = () => {
                         color="white"
                     />
                     </FormControl>
+                    
                 </VStack>
                 </ModalBody>
                 <ModalFooter>

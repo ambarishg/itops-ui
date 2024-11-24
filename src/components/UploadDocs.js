@@ -42,17 +42,13 @@ const FileUpload = () => {
 
     try {
       // Send the POST request with form data
-      const response = await axios.post('http://localhost:8000/upload_docs/', formData, {
+      await axios.post('http://localhost:8000/upload_docs/', formData, {
         headers: {
             'Content-Type': 'multipart/form-data', // Set content type for file upload
         },
     });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload file. Please try again.');
-      }
-
-      await response.json();
+     
+    
       toast({
         title: 'File Uploaded.',
         description: `File ${selectedFile.name} uploaded successfully.`,

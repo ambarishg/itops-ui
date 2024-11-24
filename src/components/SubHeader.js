@@ -18,9 +18,6 @@ const Subheader = () => {
                 <Link as={NavLink} to="/rerun-cluster" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
                     Rerun Cluster
                 </Link>
-                <Link as={NavLink} to="/cluster-info" style={{ margin: '0 15px' }} activeStyle={{ fontWeight: 'bold', color: 'teal' }}>
-                    Cluster Info
-                </Link>  
             </Flex>
         </Box>
     );
