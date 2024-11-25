@@ -21,9 +21,12 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, InfoIcon ,PlusSquareIcon} from '@chakra-ui/icons'; // Importing Add and Info icons
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
+import { useAuth } from '@clerk/clerk-react';
 
 const ClusterCounts = () => {
     const toast = useToast();
+    const { getToken } = useAuth(); // Hook to get Clerk session token
+
     const [runNames, setRunNames] = useState([]); // State for storing run names
     const [selectedRunName, setSelectedRunName] = useState(''); // State for selected run name
     const [clusterCounts, setClusterCounts] = useState([]); // Initialize as an empty array
@@ -42,8 +45,18 @@ const ClusterCounts = () => {
         // Fetch categories on component mount
         useEffect(() => {
             const fetchCategories = async () => {
+                const token = await getToken(); // Get the session token
+                console.log("Token is ")
+                console.log(token)
                 try {
-                    const response = await axios.post('http://127.0.0.1:8000/get-category-names/');
+                    const response = await axios.post('http://127.0.0.1:8000/get-category-names/',
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
                     const fetchedCategories = response.data.map(category => ({ value: category, label: category }));
                     setCategories(fetchedCategories);
     
@@ -64,10 +77,15 @@ const ClusterCounts = () => {
         if (!selectedCategory) return; // Prevent fetching if no category is selected
 
         const fetchRunNames = async () => {
+            const token = await getToken(); // Get the session token
             setLoadingRuns(true);
             try {
                 const response = await axios.post('http://127.0.0.1:8000/get-run-names-for-category/', {
                     category_name: selectedCategory,
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+                        'Content-Type': 'application/json',
+                    },
                 });
                 if(response.data)
                 {

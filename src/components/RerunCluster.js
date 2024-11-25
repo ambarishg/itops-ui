@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Input, Select, Text,  Alert } from '@chakra-ui/react';
 import axios from 'axios';
+import { useAuth } from '@clerk/clerk-react';
 
 const RerunCluster = () => {
+    const { getToken } = useAuth(); // Hook to get Clerk session token
     const [categories, setCategories] = useState([]);
     const [runName, setRunName] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -14,8 +16,16 @@ const RerunCluster = () => {
     // Fetch categories on component mount
     useEffect(() => {
         const fetchCategories = async () => {
+            const token = await getToken(); // Get the session token
             try {
-                const response = await axios.post('http://127.0.0.1:8000/get-category-names/');
+                const response = await axios.post('http://127.0.0.1:8000/get-category-names/',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
                 setCategories(response.data.map(category => ({ value: category, label: category })));
             } catch (error) {
                 console.error('Error fetching categories:', error);
@@ -37,10 +47,15 @@ const RerunCluster = () => {
         setSuccessMessage('');
 
         try {
+            const token = await getToken(); // Get the session token
             await axios.post('http://127.0.0.1:8000/rerun-cluster', {
                 run_name: runName,
                 category_name: selectedCategory,
                 num_clusters: numClusters,
+                headers: {
+                    Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+                    'Content-Type': 'application/json',
+                },
             });
             setSuccessMessage('Cluster rerun initiated successfully.');
         } catch (error) {
