@@ -249,57 +249,26 @@ const ClusterCounts = () => {
                 <Box mt={4}>
                     <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunName}</strong></Text>
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-                        {clusterCounts.map((cluster) => (
-                            <Card key={cluster.CLUSTER_NAMES} 
-                            borderWidth="1px" 
-                            borderRadius="lg" 
-                            overflow="hidden"
-                            _hover={{ transform: 'scale(1.04)', 
-                                boxShadow: 'md',
-                                zIndex: 1 }}
-                            transition="transform 0.2s ease">
-                                <CardHeader bg="teal.100" color="black" p={4} display="flex" justifyContent="space-between">
-                                    <Text>{cluster.CLUSTER_NAMES}</Text>
-                                    {/* First IconButton for adding or drilling down */}
-                                    <IconButton 
-                                        aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} 
-                                        icon={<AddIcon />}  // Use AddIcon for the plus button
-                                        variant="solid"  // Use solid variant for better visibility
-
-                                        size="lg" // Increase size for better visibility
-                                        _hover={{ bg: "orange.600", color: "white" }} // Change background and text color on hover
-                                        bg="black"
-                                        onClick={(e) => handleDrillDown(e, cluster.CLUSTER_NAMES)} 
-                                    />
-                                    {/* Second IconButton for additional info */}
-                                    <IconButton 
-                                        aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} 
-                                        icon={<InfoIcon />} 
-                                        variant="solid"  // Use outline variant for contrast
- 
-                                        size="lg" // Increase size for better visibility
-                                        
-                                        _hover={{ bg: "orange.600", color: "white" }}
-                                        bg="black"
-                                        onClick={() => handleInfoClick(cluster.CLUSTER_NAMES,
-                                            selectedRunName,selectedCategory
-                                        )} 
-                                    />
-                                </CardHeader>
-                                <CardBody p={4} display="flex" justifyContent="space-between">
-
-                                    <Text fontSize="2xl" fontWeight="bold">{cluster.count}</Text>
-                                    
-                                    {/* New IconButton for subclusters placed in grid */}
-                                    <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} 
-                                    icon={<PlusSquareIcon />} 
-                                    variant="solid" colorScheme="blue" 
-                                    _hover={{ bg: "blue.600", color: "white" }} bg="black" 
-                                    onClick={() => openSubclusterModal(cluster.CLUSTER_NAMES)} />
-                                    
-                                </CardBody>
-                            </Card>
-                        ))}
+                    {clusterCounts.map((cluster) => (
+                        <Card 
+                        key={cluster.CLUSTER_NAMES} 
+                        borderWidth="1px" 
+                        borderRadius="lg" 
+                        overflow="hidden" 
+                        _hover={{ transform: 'scale(1.1)', boxShadow: 'lg', zIndex: 1 }} // Scale on hover
+                        transition="transform 0.2s ease, box-shadow 0.2s ease" // Smooth transition
+                        >
+                        <CardHeader bg="teal.100" color="black" p={4} display="flex" justifyContent="space-between">
+                            <Text>{cluster.CLUSTER_NAMES}</Text>
+                            <IconButton aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} icon={<AddIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={(e) => handleDrillDown(e, cluster.CLUSTER_NAMES)} />
+                            <IconButton aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} icon={<InfoIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={() => handleInfoClick(cluster.CLUSTER_NAMES, selectedRunName, selectedCategory)} />
+                        </CardHeader>
+                        <CardBody p={4} display="flex" justifyContent="space-between">
+                            <Text fontSize="2xl" fontWeight="bold">{cluster.count}</Text>
+                            <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} icon={<PlusSquareIcon />} variant="solid" colorScheme="blue" _hover={{ bg: "blue.600", color: "white" }} bg="black" onClick={() => openSubclusterModal(cluster.CLUSTER_NAMES)} />
+                        </CardBody>
+                        </Card>
+                    ))}
                     </SimpleGrid>
                 </Box>
             )}

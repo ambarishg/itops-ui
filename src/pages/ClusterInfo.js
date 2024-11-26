@@ -3,7 +3,6 @@ import { useParams, useLocation } from 'react-router-dom';
 import { 
   Select, 
   Box, 
-  Heading, 
   Text, 
   SimpleGrid, 
   Card, 
@@ -16,9 +15,11 @@ import {
   TabPanel 
 } from '@chakra-ui/react';
 import axios from 'axios';
+import { useAuth } from '@clerk/clerk-react';
 
 const ClusterInfo = () => {
   const { clusterName } = useParams();
+  const { getToken } = useAuth(); // Hook to get Clerk session token
   const location = useLocation();
   const [categories, setCategories] = useState([]);
   const [runNames, setRunNames] = useState([]);
@@ -49,9 +50,14 @@ const ClusterInfo = () => {
   // Fetch RUN names
   useEffect(() => {
     const fetchRunNames = async () => {
+      const token = await getToken(); // Get the session token
       try {
         const response = await axios.post('http://127.0.0.1:8000/get-run-names-for-category/', {
           category_name: selectedCategory.value,
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            'Content-Type': 'application/json',
+        },
       });
         setRunNames(response.data.map(run => ({ value: run, label: run })));
       } catch (error) {
