@@ -71,7 +71,7 @@ const ClusterCounts = () => {
                 });
                 if(response.data)
                 {
-                    setRunNames(response.data.map(run => ({ value: run, label: run })));
+                    setRunNames(response.data.map(run => ({ value: run[0], label: run[1] })));
                 }
                 else{
                     setRunNames([])
