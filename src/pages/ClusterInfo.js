@@ -15,18 +15,19 @@ import {
   TabPanel 
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { useAuth } from '@clerk/clerk-react';
 
 const ClusterInfo = () => {
   const { clusterName } = useParams();
-  const { getToken } = useAuth(); // Hook to get Clerk session token
+ 
   const location = useLocation();
   const [categories, setCategories] = useState([]);
   const [runNames, setRunNames] = useState([]);
   const [selectedRun, setSelectedRun] = useState(null);
+  const [selectedRunNameLabel, setSelectedRunNameLabel] = useState(''); // State for selected run name
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [clusterNames, setClusterNames] = useState([]);
   const [selectedCluster, setSelectedCluster] = useState(clusterName);
+  const [selectedClusterLabel, setSelectedClusterLabel] = useState(''); // State for selected run name
   const [solutions, setSolutions] = useState([]);
   const [challenges, setChallenges] = useState([]); // State for challenges
   const [errorMessage, setErrorMessage] = useState(null);
@@ -50,16 +51,12 @@ const ClusterInfo = () => {
   // Fetch RUN names
   useEffect(() => {
     const fetchRunNames = async () => {
-      const token = await getToken(); // Get the session token
       try {
         const response = await axios.post('http://127.0.0.1:8000/get-run-names-for-category/', {
-          category_name: selectedCategory.value,
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-            'Content-Type': 'application/json',
-        },
+          category_name: selectedCategory.value
       });
-        setRunNames(response.data.map(run => ({ value: run, label: run })));
+        setRunNames(response.data.map(run => ({ value: run[0], label: run[1] })));
+
       } catch (error) {
         console.error('Error fetching run names:', error);
         setErrorMessage('Failed to fetch run names.');
@@ -77,11 +74,13 @@ const ClusterInfo = () => {
       const fetchClusterNames = async () => {
         try {
           setLoadingClusters(true);
+          console.log(selectedRun.value,selectedCategory.value)
           const response = await axios.post('http://127.0.0.1:8000/cluster-counts/', {
             run_name: selectedRun.value,
             category_name: selectedCategory.value,
           });
-          setClusterNames(response.data.map(cluster => ({ value: cluster.CLUSTER_NAMES, label: cluster.CLUSTER_NAMES })));
+          setClusterNames(response.data.map(cluster => ({ value: cluster["CLUSTER_ID"], label: cluster["CLUSTER_NAMES"] })));
+          response.data.map(cluster => (console.log(cluster)))
         } catch (error) {
           console.error('Error fetching cluster names:', error);
           setErrorMessage('Failed to fetch cluster names.');
@@ -160,6 +159,8 @@ const ClusterInfo = () => {
           const selectedValue = e.target.value;
           const selectedOption = runNames.find(run => run.value === selectedValue);
           setSelectedRun(selectedOption);
+          const selectedOptionLabel = e.target.options[e.target.selectedIndex].getAttribute('label');
+          setSelectedRunNameLabel(selectedOptionLabel);
           setSelectedCluster(null); // Reset cluster when run changes
           setSolutions([]); // Clear solutions when changing runs
           setChallenges([]); // Clear challenges when changing runs
@@ -170,7 +171,9 @@ const ClusterInfo = () => {
         isDisabled={loadingRuns}
       >
         {runNames.map(run => (
-          <option key={run.value} value={run.value}>{run.label}</option>
+           <option key={run.value} 
+           value={run.value}
+           label={run.label}>{run.label}</option>
         ))}
       </Select>
 
@@ -180,6 +183,8 @@ const ClusterInfo = () => {
           value={selectedCluster || ''}
           onChange={(e) => {
             setSelectedCluster(e.target.value); 
+            const selectedOptionLabel = e.target.options[e.target.selectedIndex].getAttribute('label');
+            setSelectedClusterLabel(selectedOptionLabel);
             setSolutions([]); // Clear solutions when changing clusters
             setChallenges([]); // Clear challenges when changing clusters
           }} 
@@ -189,8 +194,10 @@ const ClusterInfo = () => {
           isDisabled={loadingClusters}
         >
           {clusterNames.map(cluster => (
-            <option key={cluster.value} value={cluster.value}>{cluster.label}</option>
-          ))}
+            <option key={cluster.value} 
+            value={cluster.value}
+            label={cluster.label}>{cluster.label}</option>
+           ))}
         </Select>
       )}
 
