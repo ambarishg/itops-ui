@@ -26,6 +26,7 @@ const ClusterCounts = () => {
     const toast = useToast();
     const [runNames, setRunNames] = useState([]); // State for storing run names
     const [selectedRunName, setSelectedRunName] = useState(''); // State for selected run name
+    const [selectedRunNameLabel, setSelectedRunNameLabel] = useState(''); // State for selected run name
     const [clusterCounts, setClusterCounts] = useState([]); // Initialize as an empty array
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -38,6 +39,16 @@ const ClusterCounts = () => {
     const [subclusterCount, setSubclusterCount] = useState(''); // State for subcluster input
     const [subclusterRunName, setSubclusterRunName] = useState('');
     const [currentClusterName, setCurrentClusterName] = useState('');
+    const [currentClusterNameLabel, setCurrentClusterNameLabel] = useState('');
+
+
+        const handleOnChange = (event) => {
+            const selectedOptionValue = event.target.value;
+            const selectedOptionLabel = event.target.options[event.target.selectedIndex].getAttribute('label');
+            
+            setSelectedRunName(selectedOptionValue);
+            setSelectedRunNameLabel(selectedOptionLabel);
+        };
 
         // Fetch categories on component mount
         useEffect(() => {
@@ -136,6 +147,8 @@ const ClusterCounts = () => {
 
     const handleDrillDown = async (e,clusterName) => {
         e.preventDefault();
+        console.log("Cluster ID is ");
+        console.log(clusterName);
         try {
             const response = await axios.post('http://127.0.0.1:8000/get-run-name-for-drill-down/', {
                 cluster_name: clusterName,
@@ -157,8 +170,9 @@ const ClusterCounts = () => {
         navigate(`/cluster-info/${clusterName}?run=${runName}&category=${categoryName}`);
     };
 
-    const openSubclusterModal = (clusterName) => {
+    const openSubclusterModal = (clusterName,clusterNameLabel) => {
         setCurrentClusterName(clusterName);
+        setCurrentClusterNameLabel(clusterNameLabel);
         setIsOpen(true);
     };
 
@@ -176,8 +190,6 @@ const ClusterCounts = () => {
             num_clusters: subclusterCount
         });
 
-        console.log("The response is ",)
-        console.log(response.data.message)
 
         toast({
             title: 'Sub Cluster Run',
@@ -186,7 +198,7 @@ const ClusterCounts = () => {
             isClosable: true,
           });
         setLoading(false);
-        setSelectedRunName(subclusterRunName);
+        setSelectedRunName(response.data.RUN_ID);
         setIsOpen(false); // Close the modal after submission
         setSubclusterCount(''); // Reset input field
     };
@@ -216,7 +228,7 @@ const ClusterCounts = () => {
                 <Select
                     placeholder="Select the Run"
                     value={selectedRunName}
-                    onChange={(e) => setSelectedRunName(e.target.value)}
+                    onChange={(e) => handleOnChange(e)}
                     mb={4}
                     bg="white"
                     color="black"
@@ -229,7 +241,9 @@ const ClusterCounts = () => {
                     }}
                 >
                     {runNames.map(run => (
-                        <option key={run.value} value={run.value}>{run.label}</option>
+                        <option key={run.value} 
+                        value={run.value}
+                        label={run.label}>{run.label}</option>
                     ))}
                 </Select>
             )}
@@ -247,11 +261,11 @@ const ClusterCounts = () => {
 
             {clusterCounts.length > 0 && (
                 <Box mt={4}>
-                    <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunName}</strong></Text>
+                    <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunNameLabel}</strong></Text>
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
                     {clusterCounts.map((cluster) => (
                         <Card 
-                        key={cluster.CLUSTER_NAMES} 
+                        key={cluster.CLUSTER_ID} 
                         borderWidth="1px" 
                         borderRadius="lg" 
                         overflow="hidden" 
@@ -260,12 +274,12 @@ const ClusterCounts = () => {
                         >
                         <CardHeader bg="teal.100" color="black" p={4} display="flex" justifyContent="space-between">
                             <Text>{cluster.CLUSTER_NAMES}</Text>
-                            <IconButton aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} icon={<AddIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={(e) => handleDrillDown(e, cluster.CLUSTER_NAMES)} />
-                            <IconButton aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} icon={<InfoIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={() => handleInfoClick(cluster.CLUSTER_NAMES, selectedRunName, selectedCategory)} />
+                            <IconButton aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} icon={<AddIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={(e) => handleDrillDown(e, cluster.CLUSTER_ID)} />
+                            <IconButton aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} icon={<InfoIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={() => handleInfoClick(cluster.CLUSTER_ID, selectedRunName, selectedCategory)} />
                         </CardHeader>
                         <CardBody p={4} display="flex" justifyContent="space-between">
-                            <Text fontSize="2xl" fontWeight="bold">{cluster.count}</Text>
-                            <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} icon={<PlusSquareIcon />} variant="solid" colorScheme="blue" _hover={{ bg: "blue.600", color: "white" }} bg="black" onClick={() => openSubclusterModal(cluster.CLUSTER_NAMES)} />
+                            <Text fontSize="2xl" fontWeight="bold">{cluster.CLUSTERS}</Text>
+                            <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} icon={<PlusSquareIcon />} variant="solid" colorScheme="blue" _hover={{ bg: "blue.600", color: "white" }} bg="black" onClick={() => openSubclusterModal(cluster.CLUSTER_ID,cluster.CLUSTER_NAMES)} />
                         </CardBody>
                         </Card>
                     ))}
@@ -283,10 +297,10 @@ const ClusterCounts = () => {
                     Category: {selectedCategory}
                     </Text>
                     <Text fontWeight="bold" fontSize="lg" color="white">
-                    Run: {selectedRunName}
+                    Run: {selectedRunNameLabel}
                     </Text>
                     <Text fontWeight="bold" fontSize="lg" color="white">
-                    Cluster: {currentClusterName}
+                    Cluster: {currentClusterNameLabel}
                     </Text>
                     <FormControl isRequired>
                     <FormLabel color="gray.300">Sub Cluster Run Name</FormLabel>
