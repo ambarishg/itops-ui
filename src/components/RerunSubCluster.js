@@ -192,7 +192,7 @@ const RerunSubCluster = () => {
             </Select>
 
             <Button
-                colorScheme="teal"
+                bg="blanchedalmond" color="black"
                 isLoading={loading}
                 onClick={handleRerun}
             >

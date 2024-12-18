@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 
 const Header = () => {
     return (
-        <Box bg="teal.500" color="white" p={4}>
+        <Box bg="black" color="white" p={4}>
             <Flex alignItems="center" justifyContent="space-between">
                 <Heading size="md">ITSM Analyzer</Heading>
                 <Flex>

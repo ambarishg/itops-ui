@@ -99,7 +99,7 @@ const RunCluster = () => {
             </Select>
 
             <Button
-                colorScheme="teal"
+                bg="blanchedalmond" color="black"
                 onClick={handleRunCluster}
                 isLoading={loading}
             >

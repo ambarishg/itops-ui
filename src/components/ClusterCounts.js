@@ -109,6 +109,15 @@ const ClusterCounts = () => {
     const fetchClusterCounts = async () => {
         setLoading(true);
         setError('');
+
+        if (!selectedRunName)
+        {
+            return;
+        }
+        if (!selectedCategory)
+        {
+            return;
+        }
         console.log('Fetching cluster counts for:', selectedRunName); // Log current selected run name
         try {
             const response = await axios.post('http://127.0.0.1:8000/cluster-counts/', {
@@ -154,8 +163,10 @@ const ClusterCounts = () => {
                 cluster_name: clusterName,
             });
 
+
             if (response.data && response.data.run_name) {
-                setSelectedRunName(response.data.run_name);
+                setSelectedRunName(response.data.run_id);
+                setSelectedRunNameLabel(response.data.run_name);
             } else {
                 console.log('No run name found.');
             }
@@ -247,13 +258,14 @@ const ClusterCounts = () => {
                     ))}
                 </Select>
             )}
-                    <Button type="submit" colorScheme="teal" mt={4} isDisabled={loading}>
+                    <Button type="submit" bg="blanchedalmond" color="black">
                     {loading ? <Spinner size="sm" /> : 'Get Cluster Counts'}
                 </Button>
             </form>
 
             {error && (
-                <Alert status="error">
+                <Alert status="error"
+                color = "blackAlpha.900">
                     <AlertIcon />
                     {error}
                 </Alert>
@@ -262,28 +274,58 @@ const ClusterCounts = () => {
             {clusterCounts.length > 0 && (
                 <Box mt={4}>
                     <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunNameLabel}</strong></Text>
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} position="relative">
                     {clusterCounts.map((cluster) => (
                         <Card 
-                        key={cluster.CLUSTER_ID} 
-                        borderWidth="1px" 
-                        borderRadius="lg" 
-                        overflow="hidden" 
-                        _hover={{ transform: 'scale(1.1)', boxShadow: 'lg', zIndex: 1 }} // Scale on hover
-                        transition="transform 0.2s ease, box-shadow 0.2s ease" // Smooth transition
+                            key={cluster.CLUSTER_ID} 
+                            borderWidth="1px" 
+                            borderRadius="lg" 
+                            overflow="hidden" 
+                            p={4}
+                            transition="transform 0.3s ease, box-shadow 0.3s ease"
+                            _hover={{ 
+                                transform: 'scale(1.18)',   // Scale up the card
+                                zIndex: 10,                // Bring it above the other cards
+                                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)', // Add a shadow effect to make it stand out
+                            }} 
                         >
-                        <CardHeader bg="teal.100" color="black" p={4} display="flex" justifyContent="space-between">
-                            <Text>{cluster.CLUSTER_NAMES}</Text>
-                            <IconButton aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} icon={<AddIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={(e) => handleDrillDown(e, cluster.CLUSTER_ID)} />
-                            <IconButton aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} icon={<InfoIcon />} variant="solid" size="lg" _hover={{ bg: "orange.600", color: "white" }} bg="black" onClick={() => handleInfoClick(cluster.CLUSTER_ID, selectedRunName, selectedCategory)} />
-                        </CardHeader>
-                        <CardBody p={4} display="flex" justifyContent="space-between">
-                            <Text fontSize="2xl" fontWeight="bold">{cluster.CLUSTERS}</Text>
-                            <IconButton aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} icon={<PlusSquareIcon />} variant="solid" colorScheme="blue" _hover={{ bg: "blue.600", color: "white" }} bg="black" onClick={() => openSubclusterModal(cluster.CLUSTER_ID,cluster.CLUSTER_NAMES)} />
-                        </CardBody>
+                            <CardHeader p={4} display="flex" justifyContent="space-between">
+                                <Text>{cluster.CLUSTER_NAMES}</Text>
+                                <IconButton 
+                                    aria-label={`Add or drill down into ${cluster.CLUSTER_NAMES}`} 
+                                    icon={<AddIcon />} 
+                                    variant="solid" 
+                                    size="lg" 
+                                    _hover={{ bg: ".600", color: "white" }} 
+                                    bg="black" 
+                                    onClick={(e) => handleDrillDown(e, cluster.CLUSTER_ID)} 
+                                />
+                                <IconButton 
+                                    aria-label={`Show info for ${cluster.CLUSTER_NAMES}`} 
+                                    icon={<InfoIcon />} 
+                                    variant="solid" 
+                                    size="lg" 
+                                    _hover={{ bg: ".600", color: "white" }} 
+                                    bg="black" 
+                                    onClick={() => handleInfoClick(cluster.CLUSTER_ID, selectedRunName, selectedCategory)} 
+                                />
+                            </CardHeader>
+                            <CardBody p={4} display="flex" justifyContent="space-between">
+                                <Text fontSize="2xl" fontWeight="bold">{cluster.CLUSTERS}</Text>
+                                <IconButton 
+                                    aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} 
+                                    icon={<PlusSquareIcon />} 
+                                    variant="solid" 
+                                    colorScheme="blue" 
+                                    _hover={{ bg: "blue.600", color: "white" }} 
+                                    bg="black" 
+                                    onClick={() => openSubclusterModal(cluster.CLUSTER_ID, cluster.CLUSTER_NAMES)} 
+                                />
+                            </CardBody>
                         </Card>
                     ))}
-                    </SimpleGrid>
+                </SimpleGrid>
+
                 </Box>
             )}
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="md" isCentered>
