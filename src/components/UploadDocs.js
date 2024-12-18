@@ -148,7 +148,7 @@ const FileUpload = () => {
             </HStack>
             <Button
               type="submit"
-              colorScheme="teal"
+              bg="blanchedalmond" color="black"
               isFullWidth
               isDisabled={!selectedFile || isLoading}
               isLoading={isLoading}

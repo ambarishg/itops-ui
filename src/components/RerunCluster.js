@@ -99,7 +99,7 @@ const RerunCluster = () => {
             </Select>
 
             <Button
-                colorScheme="teal"
+                bg="blanchedalmond" color="black"
                 onClick={handleRerunCluster}
                 isLoading={loading}
             >
