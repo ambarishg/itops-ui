@@ -6,9 +6,7 @@ import ClusterCounts from '../components/ClusterCounts';
 
 const Home = () => {
     return (
-        <Box padding="20px" bg="gray.800"> {/* Changed background color for better contrast */}
- 
-            
+        <Box padding="20px"> {/* Changed background color for better contrast */}
             <ClusterCounts />
         </Box>
     );

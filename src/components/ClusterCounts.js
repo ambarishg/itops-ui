@@ -225,8 +225,6 @@ const ClusterCounts = () => {
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 mb={4}
-                bg="white"
-                color="black"
             >
                 {categories.map(category => (
                     <option key={category.value} value={category.value}>{category.label}</option>
@@ -241,15 +239,6 @@ const ClusterCounts = () => {
                     value={selectedRunName}
                     onChange={(e) => handleOnChange(e)}
                     mb={4}
-                    bg="white"
-                    color="black"
-                    sx={{
-                        bg: 'white',
-                        color: 'black',
-                        '&:focus': { bg: 'white', color: 'black' },
-                        '& option': { color: 'black' },
-                        '&[aria-selected]': { bg: 'white', color: 'black' },
-                    }}
                 >
                     {runNames.map(run => (
                         <option key={run.value} 
@@ -272,7 +261,8 @@ const ClusterCounts = () => {
             )}
 
             {clusterCounts.length > 0 && (
-                <Box mt={4}>
+                <Box mt={4} p={4} borderWidth="1px" borderRadius="lg">
+            
                     <Text fontSize="xl" mb={2}>Results for Run: <strong>{selectedRunNameLabel}</strong></Text>
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} position="relative">
                     {clusterCounts.map((cluster) => (
@@ -284,7 +274,7 @@ const ClusterCounts = () => {
                             p={4}
                             transition="transform 0.3s ease, box-shadow 0.3s ease"
                             _hover={{ 
-                                transform: 'scale(1.18)',   // Scale up the card
+                                transform: 'scale(1.2)',   // Scale up the card
                                 zIndex: 10,                // Bring it above the other cards
                                 boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)', // Add a shadow effect to make it stand out
                             }} 
@@ -297,7 +287,8 @@ const ClusterCounts = () => {
                                     variant="solid" 
                                     size="lg" 
                                     _hover={{ bg: ".600", color: "white" }} 
-                                    bg="black" 
+                                    bg="black"
+                                    color="white"
                                     onClick={(e) => handleDrillDown(e, cluster.CLUSTER_ID)} 
                                 />
                                 <IconButton 
@@ -306,19 +297,29 @@ const ClusterCounts = () => {
                                     variant="solid" 
                                     size="lg" 
                                     _hover={{ bg: ".600", color: "white" }} 
-                                    bg="black" 
+                                    bg="black"
+                                    color="white" 
                                     onClick={() => handleInfoClick(cluster.CLUSTER_ID, selectedRunName, selectedCategory)} 
                                 />
                             </CardHeader>
                             <CardBody p={4} display="flex" justifyContent="space-between">
-                                <Text fontSize="2xl" fontWeight="bold">{cluster.CLUSTERS}</Text>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Text fontSize="2xl" fontWeight="bold">
+                                    {cluster.CLUSTERS}
+                                </Text>
+                                <Text fontWeight="normal" marginLeft="8px">
+                                    tickets
+                                </Text>
+                            </div>
+                                
                                 <IconButton 
                                     aria-label={`Set subclusters for ${cluster.CLUSTER_NAMES}`} 
                                     icon={<PlusSquareIcon />} 
                                     variant="solid" 
                                     colorScheme="blue" 
                                     _hover={{ bg: "blue.600", color: "white" }} 
-                                    bg="black" 
+                                    bg="black"
+                                    color="white"
                                     onClick={() => openSubclusterModal(cluster.CLUSTER_ID, cluster.CLUSTER_NAMES)} 
                                 />
                             </CardBody>
